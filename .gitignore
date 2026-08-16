@@ -1,3 +1,5 @@
+.venv/
 .env
 .spotify_cache
 data/raw/
+.DS_Store
