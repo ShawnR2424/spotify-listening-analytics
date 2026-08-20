@@ -3,3 +3,6 @@
 .spotify_cache
 data/raw/
 .DS_Store
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
