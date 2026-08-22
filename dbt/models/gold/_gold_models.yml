@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: fct_listening_events
+    description: >
+      Gold fact table containing one row per unique Spotify
+      listening event.
+
+    columns:
+      - name: listening_event_id
+        description: Deterministic identifier for a unique track play.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: played_at
+        description: Timestamp when Spotify recorded the track play.
+        data_tests:
+          - not_null
+
+      - name: track_id
+        description: Spotify identifier for the track.
+        data_tests:
+          - not_null

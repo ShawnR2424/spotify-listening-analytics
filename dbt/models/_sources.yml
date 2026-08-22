@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: spotify_silver
+    description: Cleaned and standardized Spotify data produced by the Databricks Silver layer.
+
+    database: spotify_analytics
+    schema: silver
+
+    tables:
+      - name: listening_events
+        description: One row per unique Spotify track play.
+
+      - name: tracks
+        description: One row per unique Spotify track.
+
+      - name: albums
+        description: One row per unique Spotify album.
+
+      - name: artists
+        description: One row per unique Spotify artist.
+
+      - name: track_artists
+        description: One row per unique track and artist relationship.
