@@ -16,9 +16,6 @@ final as (
         track_id,
         album_id,
 
-        duration_ms as track_duration_ms,
-        is_explicit,
-
         context_type,
         context_uri,
 
