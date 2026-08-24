@@ -1,0 +1,49 @@
+version: 2
+
+models:
+
+  - name: mart_daily_listening
+    description: >
+      Daily Spotify listening metrics. One row represents one
+      calendar date with at least one listening event.
+
+    columns:
+
+      - name: played_date
+        description: Calendar date of listening activity.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: total_plays
+        description: Number of unique listening events recorded on the date.
+        data_tests:
+          - not_null
+
+      - name: unique_tracks
+        description: Number of distinct Spotify tracks played.
+
+      - name: unique_artists
+        description: Number of distinct artists represented by tracks played.
+
+      - name: listening_minutes
+        description: >
+          Approximate potential listening time calculated from the
+          durations of tracks recorded as played.
+
+      - name: repeat_plays
+        description: >
+          Number of plays where the same track had already been
+          played earlier on the same calendar date.
+
+      - name: repeat_play_rate
+        description: Repeat plays divided by total plays.
+
+      - name: explicit_plays
+        description: Number of plays involving tracks marked explicit by Spotify.
+
+      - name: first_played_at
+        description: Earliest recorded listening event for the date.
+
+      - name: last_played_at
+        description: Latest recorded listening event for the date.
