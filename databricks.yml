@@ -1,0 +1,10 @@
+bundle:
+  name: spotify_listening_analytics
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true

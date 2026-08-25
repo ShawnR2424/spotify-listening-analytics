@@ -1,0 +1,52 @@
+resources:
+  jobs:
+    Spotify_Analytics_Pipeline:
+      name: Spotify Analytics Pipeline
+      tasks:
+        - task_key: silver_transform_recently_played
+          notebook_task:
+            notebook_path: notebooks/02_silver_transform_recently_played
+            source: GIT
+          environment_key: Default
+        - task_key: silver_build_entities
+          depends_on:
+            - task_key: silver_transform_recently_played
+          notebook_task:
+            notebook_path: notebooks/03_silver_build_entities
+            source: GIT
+          environment_key: Default
+        - task_key: silver_data_quality
+          depends_on:
+            - task_key: silver_build_entities
+          notebook_task:
+            notebook_path: notebooks/04_silver_data_quality
+            source: GIT
+          environment_key: Default
+        - task_key: dbt_gold
+          depends_on:
+            - task_key: silver_data_quality
+          dbt_task:
+            project_directory: dbt
+            commands:
+              - dbt build --select gold
+            schema: gold
+            warehouse_id: 84b2c5c9e977e9d1
+            catalog: spotify_analytics
+            source: GIT
+          environment_key: dbt-default
+      git_source:
+        git_url: https://github.com/ShawnR2424/spotify-listening-analytics
+        git_provider: gitHub
+        git_branch: main
+      queue:
+        enabled: true
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "5"
+        - environment_key: dbt-default
+          spec:
+            dependencies:
+              - dbt-databricks>=1.0.0,<2.0.0
+            environment_version: "5"
+      performance_target: PERFORMANCE_OPTIMIZED
