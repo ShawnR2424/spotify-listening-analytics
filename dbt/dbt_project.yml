@@ -20,4 +20,4 @@ models:
     +materialized: view
 
     gold:
-    +materialized: table
+      +materialized: table
