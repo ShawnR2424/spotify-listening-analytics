@@ -185,3 +185,57 @@ Directly joining artists into the listening-event fact table could create fan-ou
 2 artists
       ↓
 2 resulting rows
+
+## Analytical Outputs
+
+The Gold layer includes a business-facing daily listening mart:
+
+`gold.mart_daily_listening`
+
+**Grain:** One row per calendar date with recorded listening activity.
+
+### Metrics
+
+| Metric | Definition |
+|---|---|
+| `total_plays` | Number of listening events recorded on the date |
+| `unique_tracks` | Number of distinct tracks played |
+| `unique_artists` | Number of distinct artists represented |
+| `listening_minutes` | Approximate potential listening time based on track durations |
+| `repeat_plays` | Plays where the same track had already been played earlier that day |
+| `repeat_play_rate` | Repeat plays divided by total plays |
+| `explicit_plays` | Number of plays involving tracks marked explicit by Spotify |
+| `first_played_at` | Earliest recorded listening event of the day |
+| `last_played_at` | Latest recorded listening event of the day |
+
+### Metric Caveat
+
+`listening_minutes` is calculated from the full duration of tracks recorded as played.
+
+Spotify's Recently Played data does not indicate whether a track was played to completion, so this metric represents **potential listening duration rather than exact listening time**.
+
+### Example Analytical Questions
+
+The modeled data can answer questions such as:
+
+- How does listening activity change day to day?
+- How many unique tracks and artists are consumed each day?
+- How repetitive or exploratory is daily listening behavior?
+- Which tracks are repeatedly played within the same day?
+- Which artists account for the largest share of listening activity?
+- How does listening behavior vary by time of day?
+- How does the mix of unique versus repeated tracks change over time?
+- Which albums and artists appear most frequently in listening history?
+
+### Example Gold Query
+
+```sql
+select
+    played_date,
+    total_plays,
+    unique_tracks,
+    unique_artists,
+    listening_minutes,
+    repeat_play_rate
+from spotify_analytics.gold.mart_daily_listening
+order by played_date desc;
