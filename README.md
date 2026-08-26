@@ -93,3 +93,95 @@ fct_listening_events
          │ aggregated by date
          ▼
 mart_daily_listening
+
+## Key Engineering Decisions
+
+### Preserve Raw Spotify Responses in Bronze
+
+Spotify API responses are stored in Bronze as complete JSON payloads rather than immediately flattened.
+
+Each Bronze record contains:
+
+- `batch_id`
+- `ingested_at`
+- `source_endpoint`
+- raw `payload`
+
+This preserves the original source data and allows downstream models to be rebuilt if transformation requirements change.
+
+---
+
+### Explicit Grain at Every Layer
+
+Each dataset has a clearly defined grain.
+
+Examples:
+
+- Bronze recently played data: one row per API extraction response
+- Silver `listening_events`: one row per track play
+- Silver `tracks`: one row per track
+- Gold `fct_listening_events`: one row per listening event
+- Gold `mart_daily_listening`: one row per listening date
+
+Explicit grain definitions help prevent accidental duplication and incorrect aggregations.
+
+---
+
+### Nested JSON Processing with PySpark
+
+Spotify returns nested structures containing tracks, albums, artists, and playback context.
+
+PySpark is used to:
+
+1. Parse raw JSON
+2. Convert nested JSON into typed Spark structures
+3. Explode the listening-event array
+4. Flatten relevant attributes
+5. Preserve multi-valued artist relationships
+
+This converts semi-structured API data into reusable analytical entities.
+
+---
+
+### Deterministic Listening Event IDs
+
+Spotify does not provide a unique identifier for each individual track play.
+
+A deterministic `listening_event_id` is therefore generated from:
+
+`track_id + played_at`
+
+using SHA-256 hashing.
+
+The same listening event produces the same identifier across ingestion runs, allowing duplicate events from overlapping API responses to be detected reliably.
+
+---
+
+### Overlapping API Pulls and Idempotency
+
+Incremental ingestion uses the latest successfully processed `played_at` timestamp as its checkpoint.
+
+API responses can still overlap between runs.
+
+Rather than requiring Bronze to be duplicate-free:
+
+- Bronze preserves every API extraction
+- Silver generates deterministic event IDs
+- Silver deduplicates listening events
+
+This allows the pipeline to safely reprocess overlapping source data without multiplying analytical records.
+
+---
+
+### Many-to-Many Track and Artist Relationships
+
+A Spotify track may contain multiple artists.
+
+Directly joining artists into the listening-event fact table could create fan-out:
+
+```text
+1 listening event
+      ↓
+2 artists
+      ↓
+2 resulting rows
