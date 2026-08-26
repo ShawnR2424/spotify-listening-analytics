@@ -239,3 +239,180 @@ select
     repeat_play_rate
 from spotify_analytics.gold.mart_daily_listening
 order by played_date desc;
+
+## Setup and Reproducibility
+
+### Prerequisites
+
+To run the project, you need:
+
+* Python 3
+* Git
+* A Spotify developer application
+* A Databricks workspace with Unity Catalog
+* Databricks CLI
+* Access to a Databricks SQL warehouse
+
+The repository does not contain credentials, OAuth tokens, raw personal Spotify listening data, or local environment configuration.
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/ShawnR2442/spotify-listening-analytics.git
+cd spotify-listening-analytics
+```
+
+### 2. Create the Python Environment
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 3. Configure Local Environment Variables
+
+Create a local `.env` file in the project root.
+
+```text
+SPOTIPY_CLIENT_ID=<spotify-client-id>
+SPOTIPY_REDIRECT_URI=http://127.0.0.1:8888/callback
+
+DATABRICKS_SERVER_HOSTNAME=<databricks-server-hostname>
+DATABRICKS_HTTP_PATH=<sql-warehouse-http-path>
+```
+
+The `.env` file is excluded from Git.
+
+Spotify OAuth tokens and other local authentication artifacts are also excluded from version control.
+
+### 4. Configure Spotify
+
+Create a Spotify Web API application and register the redirect URI:
+
+```text
+http://127.0.0.1:8888/callback
+```
+
+The ingestion process requires permission to read recently played Spotify activity.
+
+### 5. Authenticate the Databricks CLI
+
+Authenticate to the target Databricks workspace:
+
+```bash
+databricks auth login --host https://<databricks-workspace-host>
+```
+
+Verify the authenticated identity:
+
+```bash
+databricks current-user me
+```
+
+### 6. Validate the Databricks Bundle
+
+The Databricks workflow is defined in:
+
+```text
+databricks.yml
+resources/spotify_analytics_job.yml
+```
+
+Validate the configuration before deployment:
+
+```bash
+databricks bundle validate --target dev
+```
+
+### 7. Deploy the Pipeline
+
+Deploy the notebooks, dbt project, and Lakeflow Job definition:
+
+```bash
+databricks bundle deploy --target dev
+```
+
+The Bundle deploys version-controlled project files into Databricks and manages the pipeline resource defined in `resources/spotify_analytics_job.yml`.
+
+### 8. Ingest New Spotify Activity
+
+Run the local incremental ingestion process:
+
+```bash
+python ingestion/ingest_recently_played.py
+```
+
+The ingestion script:
+
+1. Reads the latest successfully processed listening timestamp.
+2. Requests newer recently-played activity from Spotify.
+3. Preserves API responses in the Databricks Bronze layer.
+4. Allows overlapping source batches while downstream Silver processing handles event deduplication.
+
+### 9. Run the Transformation Pipeline
+
+After Bronze ingestion, execute the orchestrated pipeline:
+
+```bash
+databricks bundle run --target dev Spotify_Analytics_Pipeline
+```
+
+The workflow executes:
+
+```text
+silver_transform_recently_played
+              ↓
+silver_build_entities
+              ↓
+silver_data_quality
+              ↓
+dbt_gold
+```
+
+The Gold build executes only if the Silver data-quality task succeeds.
+
+### Optional: Local dbt Development
+
+For local development of Gold models, activate the project's Python environment:
+
+```bash
+source .venv/bin/activate
+```
+
+Configure a local dbt profile outside the repository at:
+
+```text
+~/.dbt/profiles.yml
+```
+
+Then test the connection:
+
+```bash
+dbt debug --project-dir dbt
+```
+
+Build the Gold layer locally:
+
+```bash
+dbt build --project-dir dbt --select gold
+```
+
+Local dbt credentials and connection profiles are intentionally not stored in the repository.
+
+## Security and Version Control
+
+The following files and directories are excluded from Git:
+
+```text
+.env
+.venv/
+.spotify_cache
+data/raw/
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+.DS_Store
+```
+
+This keeps credentials, authentication artifacts, generated files, local environments, and personal Spotify listening data out of the public repository.
