@@ -416,3 +416,25 @@ dbt/dbt_packages/
 ```
 
 This keeps credentials, authentication artifacts, generated files, local environments, and personal Spotify listening data out of the public repository.
+
+## Pipeline in Action
+
+### Orchestrated Databricks Workflow
+
+The Silver transformation, entity modeling, data-quality validation, and dbt Gold build are executed as a dependency-managed Databricks Lakeflow Job.
+
+![Successful Databricks Lakeflow pipeline](docs/images/lakeflow_pipeline_success.png)
+
+A critical Silver data-quality failure prevents the downstream dbt Gold task from executing.
+
+### Databricks Medallion Architecture
+
+Raw Spotify responses progress through Bronze, Silver, and Gold schemas within the Databricks lakehouse.
+
+![Databricks Bronze Silver and Gold data layers](docs/images/databricks_data_layers.png)
+
+### dbt Lineage
+
+dbt manages the analytical Gold layer and captures dependencies between Silver sources, dimensional models, fact tables, bridge tables, and analytical marts.
+
+![dbt model lineage](docs/images/dbt_lineage.png)
