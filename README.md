@@ -433,6 +433,68 @@ Raw Spotify responses progress through Bronze, Silver, and Gold schemas within t
 
 ![Databricks Bronze Silver and Gold data layers](docs/images/databricks_data_layers.png)
 
+## Project Status
+
+**Status:** Functional portfolio project
+
+The current implementation supports:
+
+* Incremental Spotify recently-played ingestion
+* Raw API preservation in Databricks Bronze
+* PySpark-based Silver transformation and entity modeling
+* Deterministic event deduplication
+* Automated Silver data-quality validation
+* dbt-based Gold dimensional modeling and analytical marts
+* Databricks Lakeflow Job orchestration
+* Version-controlled orchestration using a Declarative Automation Bundle
+
+The Databricks workflow successfully executes the Silver transformation, entity build, quality gate, and dbt Gold build as a dependency-managed pipeline.
+
+## What I Learned
+
+This project was designed to practice the responsibilities of an Analytics Engineer rather than simply produce a dashboard.
+
+Key areas of development included:
+
+* Designing explicit table grains before transformation
+* Processing nested and semi-structured API data with PySpark
+* Separating raw ingestion from analytical transformation
+* Building idempotent processing around overlapping API extracts
+* Modeling many-to-many relationships without introducing metric fan-out
+* Applying dimensional modeling principles to analytical datasets
+* Using dbt for lineage, testing, documentation, and business-facing models
+* Treating data quality as an executable pipeline gate
+* Defining Databricks orchestration as version-controlled infrastructure
+* Separating credentials and runtime configuration from source-controlled code
+
+## Current Limitations
+
+This project intentionally uses a relatively small personal dataset and Databricks Free Edition.
+
+Current limitations include:
+
+* Spotify's Recently Played API exposes a limited recent-history window rather than complete historical listening activity.
+* Spotify API ingestion currently runs separately from the Databricks Lakeflow workflow.
+* OAuth authentication for Spotify remains user-based rather than designed for unattended production execution.
+* `listening_minutes` is derived from track duration and does not prove that each track was played to completion.
+* The project is designed for portfolio-scale workloads rather than production-scale volume.
+* Databricks Free Edition imposes compute and platform limits.
+
+## Future Improvements
+
+Potential extensions include:
+
+* Fully automated Spotify ingestion
+* Scheduled pipeline execution
+* Additional Spotify sources such as saved tracks and top-item snapshots
+* Historical affinity modeling
+* Incremental Silver processing instead of full-table rebuilding
+* Pipeline monitoring and failure notifications
+* CI validation for dbt and Databricks Bundle changes
+* Additional behavioral marts for artist affinity, music discovery, and listening sessions
+* Integration of additional public music datasets for richer track metadata
+* Deployment metadata linking pipeline runs to Git commit versions
+
 ### dbt Lineage
 
 dbt manages the analytical Gold layer and captures dependencies between Silver sources, dimensional models, fact tables, bridge tables, and analytical marts.
