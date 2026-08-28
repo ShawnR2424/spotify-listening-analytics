@@ -1,40 +1,35 @@
-# Spotify Listening Analytics
+# Spotify Listening Insights
 
-An end-to-end analytics engineering project that collects personal Spotify listening activity and transforms raw API responses into tested, analytics-ready datasets using Python, Databricks, PySpark, Delta Lake, dbt, and Databricks Lakeflow Jobs.
+This is an end-to-end data engineering project that collects personal Spotify listening activity and transforms the raw API responses into tested, analytics-ready datasets using Python, Databricks, PySpark, Delta Lake, dbt, and Databricks Lakeflow Jobs. The project demonstrates a modern analytics engineering workflow including incremental ingestion, medallion architecture, dbt testing, and workflow orchestration.
 
-The project demonstrates a modern analytics engineering workflow including incremental ingestion, medallion architecture, nested JSON processing, dimensional modeling, data quality validation, dbt testing, and workflow orchestration.
-
-## Architecture
+## Data Architecture
 
 ```text
-Spotify Web API
+The Spotify Web API
        │
        ▼
-Python / Spotipy
-Incremental ingestion
+Python's Spotipy library
+(incremental ingestion)
        │
        ▼
-Databricks Bronze
-Raw API responses
+Databricks Bronze Layer
+(raw API responses)
        │
        ▼
 PySpark
-Parse • Explode • Deduplicate
+(parse • explode • deduplicate)
        │
        ▼
-Databricks Silver
-Clean events and reusable entities
-       │
-       ▼
-Silver Data Quality
-Uniqueness • Completeness • Referential integrity
+Databricks Silver Layer
+(clean events and reusable entities)
        │
        ▼
 dbt
+(transformations)
        │
        ▼
-Databricks Gold
-Facts • Dimensions • Bridge tables • Analytics marts
+Databricks Gold Layer
+(facts • dimensions • bridge tables • marts)
        │
        ▼
 Analytics-ready datasets
@@ -113,7 +108,7 @@ This preserves the original source data and allows downstream models to be rebui
 
 ### Explicit Grain at Every Layer
 
-Each dataset has a clearly defined grain.
+Each table has a clearly defined grain.
 
 Examples:
 
@@ -123,7 +118,7 @@ Examples:
 - Gold `fct_listening_events`: one row per listening event
 - Gold `mart_daily_listening`: one row per listening date
 
-Explicit grain definitions help prevent accidental duplication and incorrect aggregations.
+Explicit grain definitions help prevent data duplication and incorrect aggregations.
 
 ---
 
@@ -148,10 +143,8 @@ This converts semi-structured API data into reusable analytical entities.
 Spotify does not provide a unique identifier for each individual track play.
 
 A deterministic `listening_event_id` is therefore generated from:
-
 `track_id + played_at`
-
-using SHA-256 hashing.
+(using SHA-256 hashing)
 
 The same listening event produces the same identifier across ingestion runs, allowing duplicate events from overlapping API responses to be detected reliably.
 
